@@ -2,6 +2,7 @@ import os
 import stat
 import paramiko
 import subprocess
+import time
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -45,41 +46,43 @@ local_dir = os.getenv("LOCAL_DIR")
 log_path = os.getenv("LOG_PATH")
 logger.add(log_path, rotation="500 MB")
 
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+# Fetch the waiting time from the environment variable
+wait_time = int(os.getenv("WAIT_TIME", "30"))  # Here 30 is the default wait time in seconds if the env variable is not set
 
-try:
-    ssh.connect(connection_host, username=connection_user, password=connection_password, key_filename=connection_private_key)
-    sftp_client = ssh.open_sftp()
-    download_new_or_updated_files(sftp_client, connection_dir, local_dir)
-    
-except paramiko.AuthenticationException as auth_error:
-    logger.error(f"Authentication failed, please verify your credentials: {auth_error}")
-    exit(1)
+while True:
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        ssh.connect(connection_host, username=connection_user, password=connection_password, key_filename=connection_private_key)
+        sftp_client = ssh.open_sftp()
+        download_new_or_updated_files(sftp_client, connection_dir, local_dir)
+    except paramiko.AuthenticationException as auth_error:
+        logger.error(f"Authentication failed, please verify your credentials: {auth_error}")
+    except Exception as e:
+        logger.error(f"Failed to connect to SFTP server: {e}")
 
-except Exception as e:
-    logger.error(f"Failed to connect to SFTP server: {e}")
-    exit(1)
+    rclone_path = os.getenv("RCLONE_PATH")
+    rclone_command = ["rclone", "copy", "-v", "--update", local_dir, rclone_path]
+    rclone_process = subprocess.run(rclone_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-rclone_path = os.getenv("RCLONE_PATH")
-rclone_command = ["rclone", "copy", "-v", "--update", local_dir, rclone_path]
-rclone_process = subprocess.run(rclone_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = rclone_process.stdout.decode()
+    if stdout.strip():
+        logger.info(stdout)
+    else:
+        logger.info("Rclone command executed successfully but produced no stdout output.")
 
-stdout = rclone_process.stdout.decode()
-if stdout.strip():
-    logger.info(stdout)
-else:
-    logger.info("Rclone command executed successfully but produced no stdout output.")
+    stderr = rclone_process.stderr.decode()
+    if stderr.strip():
+        if rclone_process.returncode != 0:  # If there's an error
+            logger.error(stderr)
+        else:  # If there's no error
+            logger.info(stderr)
 
-stderr = rclone_process.stderr.decode()
-if stderr.strip():
-    if rclone_process.returncode != 0:  # If there's an error
-        logger.error(stderr)
-    else:  # If there's no error
-        logger.info(stderr)
+    if sftp_client:
+        sftp_client.close()
 
-if sftp_client:
-    sftp_client.close()
+    if ssh:
+        ssh.close()
 
-if ssh:
-    ssh.close()
+    # Wait for a specified time before the next run
+    time.sleep(wait_time)
