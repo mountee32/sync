@@ -62,7 +62,7 @@ while True:
         logger.error(f"Failed to connect to SFTP server: {e}")
 
     rclone_path = os.getenv("RCLONE_PATH")
-    rclone_command = ["rclone", "copy", "-v", "--update", local_dir, rclone_path]
+    rclone_command = ["rclone", "--config=.rclone.conf", "copy", "-v", "--update", local_dir, rclone_path]
     rclone_process = subprocess.run(rclone_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout = rclone_process.stdout.decode()
