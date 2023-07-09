@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd /home/andy/docker/sftpsync/
 # Step 1: Clone the repository
 git clone https://github.com/mountee32/sync.git
 
@@ -11,4 +11,4 @@ docker build -t sftpsync .
 
 # Step 4: Run the Docker Container with a Bind Mount
 # Replace /path/to/data with the path to your data directory
-docker run -v /path/to/data:/app/data -d my-python-app
+docker run -v /home/andy/docker/sftpsync/data:/app/data -d sftpsync
