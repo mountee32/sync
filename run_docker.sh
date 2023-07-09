@@ -1,7 +1,7 @@
 #!/bin/bash
 cd /home/andy/docker/sftpsync/
 # Step 1: Clone the repository
-git clone https://github.com/mountee32/sync.git
+git pull https://github.com/mountee32/sync.git
 
 # Step 2: Navigate into the cloned repository
 cd sync
