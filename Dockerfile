@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y rclone
 # Copy the rclone configuration file
 COPY .rclone.conf /root/.config/rclone/rclone.conf
 
+# Verify rclone installation
+RUN rclone version
+
 # Copy the current directory contents into the container at /app
 COPY . /app
 
