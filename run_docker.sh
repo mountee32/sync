@@ -2,6 +2,7 @@
 cd /home/andy/docker/sftpsync/
 
 # Fetch the remote repository
+git stash save "Saving local changes"
 git fetch https://github.com/mountee32/sync.git
 
 # Reset your local branch to match the remote branch
