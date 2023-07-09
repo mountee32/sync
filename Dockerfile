@@ -5,7 +5,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install rclone
-RUN curl https://rclone.org/install.sh | bash
+RUN apt-get update && apt-get install -y rclone
 
 # Copy the rclone configuration file
 COPY .rclone.conf /root/.config/rclone/rclone.conf
