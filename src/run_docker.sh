@@ -16,6 +16,7 @@ cd src
 # Reset your local branch to match the remote branch.
 git reset --hard FETCH_HEAD
 
+cd /home/andy/docker/sftpsync/
 # Build the Docker Image
 sudo docker build -t sftpsync .
 
