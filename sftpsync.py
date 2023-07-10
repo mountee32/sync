@@ -44,7 +44,7 @@ connection_dir = os.getenv("CONNECTION_DIR")
 
 local_dir = os.getenv("LOCAL_DIR")
 
-log_path = os.getenv("LOG_PATH")
+log_path = local_dir+'/'+os.getenv("LOG_PATH")
 logger.add(log_path, rotation="500 MB")
 
 # Fetch the waiting time from the environment variable
@@ -85,7 +85,7 @@ while True:
     if ssh:
         ssh.close()
     try:
-        shutil.copy2(log_path, 'activitylog.txt')
+        shutil.copy2(log_path , local_dir+'/activitylog.txt')
         logger.info("Log file copied to activitylog.txt")
     except Exception as e:
         logger.error(f"Failed to copy log file: {e}")

@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/andy/docker/sftpsync/
+cd /home/andy/docker/sftpsync/sync
 #! 
 # Fetch the remote repository
 git stash save "Saving local changes"
