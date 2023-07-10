@@ -18,8 +18,8 @@ git reset --hard FETCH_HEAD
 
 cd /home/andy/docker/sftpsync/
 # Build the Docker Image
-sudo docker build -t sftpsync .
+docker build -t sftpsync .
 
 # Run the Docker Container with a Bind Mount
 # The data directory is mounted into the Docker container
-sudo docker run -v /home/andy/docker/sftpsync/data:/app/data -d sftpsync
+docker run -v /home/andy/docker/sftpsync/data:/app/data -d sftpsync
