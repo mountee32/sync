@@ -84,11 +84,12 @@ while True:
 
     if ssh:
         ssh.close()
-    try:
-        shutil.copy2(log_path , local_dir+'/activitylog.txt')
-        logger.info("Log file copied to activitylog.txt")
-    except Exception as e:
-        logger.error(f"Failed to copy log file: {e}")
+    
+    # try:
+    #     shutil.copy2(log_path , local_dir+'/activitylog.txt')
+    #     logger.info("Log file copied to activitylog.txt")
+    # except Exception as e:
+    #     logger.error(f"Failed to copy log file: {e}")
 
     # Wait for a specified time before the next run
     time.sleep(wait_time)
