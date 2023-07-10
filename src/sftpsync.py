@@ -8,7 +8,8 @@ from loguru import logger
 import shutil
 
 # Load .env file
-load_dotenv()
+load_dotenv("./config/.env")
+
 
 def download_new_or_updated_files(sftp, remote_dir, local_dir):
     remote_files = sftp.listdir_attr(remote_dir)
@@ -44,7 +45,7 @@ connection_dir = os.getenv("CONNECTION_DIR")
 
 local_dir = os.getenv("LOCAL_DIR")
 
-log_path = local_dir+'/'+os.getenv("LOG_PATH")
+log_path = "./data/"+os.getenv("LOG_FILE")
 logger.add(log_path, rotation="500 MB")
 
 # Fetch the waiting time from the environment variable
@@ -63,7 +64,7 @@ while True:
         logger.error(f"Failed to connect to SFTP server: {e}")
 
     rclone_path = os.getenv("RCLONE_PATH")
-    rclone_command = ["rclone", "--config=.rclone.conf", "copy", "-v", "--update", local_dir, rclone_path]
+    rclone_command = ["rclone", "--config=./config/rclone.conf", "copy", "-v", "--update", local_dir, rclone_path]
     rclone_process = subprocess.run(rclone_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout = rclone_process.stdout.decode()
