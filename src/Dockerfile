@@ -20,8 +20,8 @@ COPY config/.rclone.conf /root/.config/rclone/rclone.conf
 # Verify rclone installation
 RUN rclone version
 
-# Copy the source code into the container
-COPY src/* ./
+# Copy the source code into the container at /app/src
+COPY src/ src/
 
 # Run the command to start your application
-CMD ["python", "./sftpsync.py"]
+CMD ["python", "./src/sftpsync.py"]

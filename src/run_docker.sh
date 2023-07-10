@@ -6,10 +6,12 @@
 # /home/andy/docker/sftpsync/data/ : Directory that contains local data that we want to preserve.
 
 # Navigate into the local repository directory.
-cd /home/andy/docker/sftpsync/src/
+cd /home/andy/docker/sftpsync/
 
 # Fetch the updates from the remote repository.
 git fetch https://github.com/mountee32/sync.git
+
+cd src
 
 # Reset your local branch to match the remote branch.
 git reset --hard FETCH_HEAD
