@@ -1,3 +1,4 @@
 paramiko
 python-dotenv
 loguru
+tqdm
