@@ -11,6 +11,35 @@ from tqdm import tqdm
 # Load .env file
 load_dotenv("./config/.env")
 
+# Load environment
+env = os.getenv("ENV")
+
+if env.lower() == "live":
+    connection_host = os.getenv("CONNECTION_HOST")
+    connection_user = os.getenv("CONNECTION_USER")
+    connection_password = os.getenv("CONNECTION_PASSWORD")
+    connection_private_key = os.getenv("CONNECTION_PRIVATE_KEY")
+    connection_dir = os.getenv("CONNECTION_DIR")
+elif env.lower() == "uat":
+    connection_host = os.getenv("UAT_CONNECTION_HOST")
+    connection_user = os.getenv("UAT_CONNECTION_USER")
+    connection_password = os.getenv("UAT_CONNECTION_PASSWORD")
+    connection_private_key = os.getenv("UAT_CONNECTION_PRIVATE_KEY")
+    connection_dir = os.getenv("UAT_CONNECTION_DIR")
+else:
+    logger.error(f"Invalid environment: {env}")
+    exit(1)
+logger.info(f"Connecting to {env.upper()} environment")
+local_dir = os.getenv("LOCAL_DIR")
+
+log_path = "./data/"+os.getenv("LOG_FILE")
+logger.add(log_path, rotation="500 MB")
+
+wait_time = int(os.getenv("WAIT_TIME", "30"))  # Default wait time in seconds if the env variable is not set
+
+MAX_RETRIES = 3
+RETRY_WAIT_TIME = 5 * 60  # 5 minutes
+
 class FileDownloader:
     def __init__(self):
         self.progress_bar = None
@@ -34,6 +63,7 @@ class FileDownloader:
                 self.download_new_or_updated_files(sftp, remote_file, local_file)
             else:
                 logger.info(f"Found the following file: {file.filename}")
+                logger.info(f"Size of the file is: {file.st_size} bytes")  # New logging statement
 
                 if file.st_size > 1e9:  # Skip files larger than 1GB
                     logger.info(f"Skipping file {file.filename} as it is larger than 1GB.")
@@ -49,22 +79,6 @@ class FileDownloader:
                     logger.info("New file found on the server, downloading...")
                     with tqdm(total=file.st_size, unit='B', unit_scale=True, desc=file.filename) as self.progress_bar:
                         sftp.get(remote_file, local_file, callback=self.progress_callback)
-
-connection_host = os.getenv("CONNECTION_HOST")
-connection_user = os.getenv("CONNECTION_USER")
-connection_password = os.getenv("CONNECTION_PASSWORD")
-connection_private_key = os.getenv("CONNECTION_PRIVATE_KEY")
-connection_dir = os.getenv("CONNECTION_DIR")
-
-local_dir = os.getenv("LOCAL_DIR")
-
-log_path = "./data/"+os.getenv("LOG_FILE")
-logger.add(log_path, rotation="500 MB")
-
-wait_time = int(os.getenv("WAIT_TIME", "30"))  # Default wait time in seconds if the env variable is not set
-
-MAX_RETRIES = 3
-RETRY_WAIT_TIME = 5 * 60  # 5 minutes
 
 downloader = FileDownloader()
 
@@ -93,21 +107,22 @@ for attempt in range(MAX_RETRIES):
         logger.error("Max retries reached. Exiting...")
         exit(1)
 
-rclone_path = os.getenv("RCLONE_PATH")
-rclone_command = ["rclone", "--config=./config/rclone.conf", "copy", "-v", "--update", local_dir, rclone_path]
-rclone_process = subprocess.run(rclone_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+if env.lower() == "live":
+    rclone_path = os.getenv("RCLONE_PATH")
+    rclone_command = ["rclone", "--config=./config/rclone.conf", "copy", "-v", "--update", local_dir, rclone_path]
+    rclone_process = subprocess.run(rclone_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-stdout = rclone_process.stdout.decode()
-if stdout.strip():
-    logger.info(stdout)
-else:
-    logger.info("Rclone command executed successfully but produced no stdout output.")
+    stdout = rclone_process.stdout.decode()
+    if stdout.strip():
+        logger.info(stdout)
+    else:
+        logger.info("Rclone command executed successfully but produced no stdout output.")
 
-stderr = rclone_process.stderr.decode()
-if stderr.strip():
-    if rclone_process.returncode != 0:  # If there's an error
-        logger.error(stderr)
-    else:  # If there's no error
-        logger.info(stderr)
+    stderr = rclone_process.stderr.decode()
+    if stderr.strip():
+        if rclone_process.returncode != 0:  # If there's an error
+            logger.error(stderr)
+        else:  # If there's no error
+            logger.info(stderr)
 
 time.sleep(wait_time)
