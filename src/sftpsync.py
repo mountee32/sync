@@ -3,6 +3,7 @@ import stat
 import paramiko
 import subprocess
 import time
+import json
 from dotenv import load_dotenv
 from loguru import logger
 import shutil
@@ -32,7 +33,18 @@ else:
 logger.info(f"Connecting to {env.upper()} environment")
 local_dir = os.getenv("LOCAL_DIR")
 
-log_path = "./data/"+os.getenv("LOG_FILE")
+# Load files to skip
+try:
+    with open("files_to_skip.json", "r") as f:
+        files_to_skip = json.load(f)["files_to_skip"]
+except FileNotFoundError:
+    logger.warning("files_to_skip.json file not found. Assuming no files to skip.")
+    files_to_skip = []
+except json.JSONDecodeError as e:
+    logger.error(f"Error parsing files_to_skip.json: {e}")
+    exit(1)
+
+log_path = "./data/" + os.getenv("LOG_FILE")
 logger.add(log_path, rotation="500 MB")
 
 wait_time = int(os.getenv("WAIT_TIME", "30"))  # Default wait time in seconds if the env variable is not set
@@ -63,10 +75,14 @@ class FileDownloader:
                 self.download_new_or_updated_files(sftp, remote_file, local_file)
             else:
                 logger.info(f"Found the following file: {file.filename}")
-                logger.info(f"Size of the file is: {file.st_size} bytes")  # New logging statement
+                logger.info(f"Size of the file is: {file.st_size} bytes")
 
                 if file.st_size > 1e9:  # Skip files larger than 1GB
                     logger.info(f"Skipping file {file.filename} as it is larger than 1GB.")
+                    continue
+
+                if file.filename in files_to_skip:
+                    logger.info(f"Skipping file {file.filename} as it is in the files_to_skip list.")
                     continue
 
                 if os.path.exists(local_file):
@@ -106,7 +122,7 @@ for attempt in range(MAX_RETRIES):
     else:
         logger.error("Max retries reached. Exiting...")
         exit(1)
-
+#change below when running in replit 
 if env.lower() == "live":
     rclone_path = os.getenv("RCLONE_PATH")
     rclone_command = ["rclone", "--config=./config/rclone.conf", "copy", "-v", "--update", local_dir, rclone_path]

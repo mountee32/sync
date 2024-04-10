@@ -1,2 +1,2 @@
-run="python src/sftpsync.py uat"
+run="python src/sftpsync.py"
 modules = ["python-3.10:v25-20230920-d4ad2e4"]

@@ -1,1 +1,0 @@
-Firm^Brn^Brn_descrpt^Exec^RSP_descrpt^Product_Code^Portfolio^Name^Date^Request_Type^Request_Number^Package^Adr_No^Copies^Dte_frm^Dte_to^Errors^Print^Skip_earning_acc_prf    ^eCopies^Print_Copies^Delivery_Method^Is_Consolidated_Statement^
